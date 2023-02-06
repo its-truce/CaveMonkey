@@ -209,21 +209,17 @@ async def pop(interaction: discord.Interaction, bloon: Literal["camo", "lead", "
 
 @bot.tree.command(description="Find out which round you need to start saving up at for a certain amount of money.")
 @app_commands.describe(money="The amount of money you need.", round="The round you need the money by.")
-async def saveup(interaction: discord.Interaction, money: int, round: int, difficulty: Literal["easy", "medium", "hard"]):
+async def saveup(interaction: discord.Interaction, money: int, round: int):
     if round > 140:
         error_embed = discord.Embed(color=0x5865f2, title="Encountered Problem [`/saveup`]", description="Round parameter cannot exceed 140.")
         error_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
         await interaction.response.send_message(embed=error_embed)
-    elif money > cash.medium[round - 1]:
+    elif money > cash.medium[round - 1] - 650:
         error_embed = discord.Embed(color=0x5865f2, title="Encountered Problem [`/saveup`]", description="Money parameter cannot exceed maximum cash earned by round.")
         error_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
         await interaction.response.send_message(embed=error_embed)
-    elif difficulty == "easy" or difficulty == "hard":
-        error_embed = discord.Embed(color=0x5865f2, title="Encountered Problem [`/saveup`]", description="Easy and hard difficulty values have not been added. Please wait for the developer to add them :)")
-        error_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
-        await interaction.response.send_message(embed=error_embed)
     else:
-        cash_total = cash.medium[round - 1]
+        cash_total = cash.medium[round - 1] - 650
         req = cash_total - money
         medium_array = np.array(cash.medium)
         mask = (medium_array >= req)
@@ -278,7 +274,40 @@ async def vtsg(interaction: discord.Interaction, attack: Literal["main beam", "s
         vtsg_embed.add_field(name="Buffed By", value="> AMD | P-Brew | OC | U-boost | Flagship | Jdrums\n> Blood Sacrifice | Homeland | Support Temple | Debuffs", inline=False)
         vtsg_embed.add_field(name="Buffed Damage", value="> 60 + 1 + 1 + 2 + 12 = 76", inline=False)
         vtsg_embed.add_field(name="Buffed Cooldown", value="> 0.5 * (0.85^3) * (0.81) * (0.36) * (0.5^2) = 0.02238", inline=False)
-        vtsg_embed.add_field(name="Total Buffed DPS", value="> 2*76/0.02238 = =6790.3 ~ **6.8k**", inline=False)
+        vtsg_embed.add_field(name="Total Buffed DPS", value="> 2 * 76/0.02238 = 6790.3 ~ **6.8k**", inline=False)
+        vtsg_embed.set_footer(text="ⓘ single target only; data from LordVex75")
+        await interaction.response.send_message(embed=vtsg_embed)
+    elif attack == "blades":
+        vtsg_embed = discord.Embed(color=0x3E3F7C, title="VTSG Blades [`/vtsg`]")
+        vtsg_embed.set_thumbnail(url="https://static.wikia.nocookie.net/b__/images/0/0c/GoldenBlade555.png/revision/latest?cb=20200626011628&path-prefix=bloons")
+        vtsg_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+        vtsg_embed.add_field(name="Base Stats", value="> 50 damage | 1.5 attack cd | 16 blades | 533 base dps", inline=False)
+        vtsg_embed.add_field(name="Buffed By", value="> AMD | P-Brew | OC | U-boost | Flagship | Jdrums\n> Blood Sacrifice | Homeland | Support Temple | Debuffs", inline=False)
+        vtsg_embed.add_field(name="Buffed Damage", value="> 50 + 1 + 1 + 2 + 12 = 66", inline=False)
+        vtsg_embed.add_field(name="Buffed Cooldown", value="> 1.5 * (0.85^3) * (0.81) * (0.36) * (0.5^2) = 0.06715", inline=False)
+        vtsg_embed.add_field(name="Total Buffed DPS", value="> 16 * 66/0.06715 = 15726 ~ **15.7k** (~ 982 per blade)", inline=False)
+        vtsg_embed.set_footer(text="ⓘ single target only; data from LordVex75")
+        await interaction.response.send_message(embed=vtsg_embed)
+    elif attack == "homing missiles":
+        vtsg_embed = discord.Embed(color=0x3E3F7C, title="VTSG Homing Missiles [`/vtsg`]")
+        vtsg_embed.set_thumbnail(url="https://static.wikia.nocookie.net/b__/images/c/cc/GoldenHomingMissile555.png/revision/latest?cb=20200626011630&path-prefix=bloons")
+        vtsg_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+        vtsg_embed.add_field(name="Base Stats", value="> 150 damage (148 + 2 MOAB damage) | 1 attack cd | 2 missiles | 300 base dps", inline=False)
+        vtsg_embed.add_field(name="Buffed By", value="> AMD | P-Brew | OC | U-boost | Flagship | Jdrums\n> Blood Sacrifice | Homeland | Support Temple | Debuffs", inline=False)
+        vtsg_embed.add_field(name="Buffed Damage", value="> 150 + 1 + 1 + 2 + 12 = 166", inline=False)
+        vtsg_embed.add_field(name="Buffed Cooldown", value="> 1 * (0.85^3) * (0.81) * (0.36) * (0.5^2) = 0.04477", inline=False)
+        vtsg_embed.add_field(name="Total Buffed DPS", value="> 2 * 166/0.04477 = 7415.68 ~ **7.4k**", inline=False)
+        vtsg_embed.set_footer(text="ⓘ single target only; data from LordVex75")
+        await interaction.response.send_message(embed=vtsg_embed)
+    elif attack == "magical homing shots":
+        vtsg_embed = discord.Embed(color=0x3E3F7C, title="VTSG Magical Shots [`/vtsg`]")
+        vtsg_embed.set_thumbnail(url="https://media.discordapp.net/attachments/936921170119381022/1072117994127364136/image.png")
+        vtsg_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+        vtsg_embed.add_field(name="Base Stats", value="> 70 damage | 2 attack cd | 12 shots | 420 base dps", inline=False)
+        vtsg_embed.add_field(name="Buffed By", value="> AMD | P-Brew | OC | U-boost | Flagship | Jdrums\n> Blood Sacrifice | Homeland | Support Temple | Debuffs", inline=False)
+        vtsg_embed.add_field(name="Buffed Damage", value="> 70 + 1 + 1 + 2 + 12 = 86", inline=False)
+        vtsg_embed.add_field(name="Buffed Cooldown", value="> 2 * (0.85^3) * (0.81) * (0.36) * (0.5^2) = 0.08954", inline=False)
+        vtsg_embed.add_field(name="Total Buffed DPS", value="> 12 * 86/0.08954 = 11525 ~ **11.5k**", inline=False)
         vtsg_embed.set_footer(text="ⓘ single target only; data from LordVex75")
         await interaction.response.send_message(embed=vtsg_embed)
 
