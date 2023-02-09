@@ -3,9 +3,15 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from typing import Literal
+from colorthief import ColorThief
+from io import BytesIO
+import sys
+from urllib.request import urlopen
 import numpy as np
 import pops
 import cash
+import nkapi
+import requests
 
 # Setup
 token = "YOUR TOKEN HERE"
@@ -16,7 +22,7 @@ class Bot(commands.Bot):
         intents.message_content= True
         intents.members = True
         intents.presences = True
-        activity = discord.Game(name="Bloons TD6")
+        activity = discord.Game(name="Bloons TD 6")
         super().__init__(command_prefix=commands.when_mentioned_or("^"), intents=intents, activity=activity, status=discord.Status.idle)
 
 bot = Bot()
@@ -208,27 +214,68 @@ async def pop(interaction: discord.Interaction, bloon: Literal["camo", "lead", "
             await interaction.response.send_message(embed=pop_embed)
 
 @bot.tree.command(description="Find out which round you need to start saving up at for a certain amount of money.")
-@app_commands.describe(money="The amount of money you need.", round="The round you need the money by.")
-async def saveup(interaction: discord.Interaction, money: int, round: int):
+@app_commands.describe(money="The amount of money you need.", round="The round you need the money by.", difficulty="The difficulty you're playing at.")
+async def saveup(interaction: discord.Interaction, money: int, round: int, difficulty: Literal["easy/medium", "hard", "impoppable/chimps"] = "easy/medium"):
     if round > 140:
         error_embed = discord.Embed(color=0x5865f2, title="Encountered Problem [`/saveup`]", description="Round parameter cannot exceed 140.")
         error_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
         await interaction.response.send_message(embed=error_embed)
-    elif money > cash.medium[round - 1] - 650:
-        error_embed = discord.Embed(color=0x5865f2, title="Encountered Problem [`/saveup`]", description="Money parameter cannot exceed maximum cash earned by round.")
+    if round == 0:
+        error_embed = discord.Embed(color=0x5865f2, title="Encountered Problem [`/saveup`]", description="Round parameter cannot be 0.")
         error_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
         await interaction.response.send_message(embed=error_embed)
-    else:
-        cash_total = cash.medium[round - 1] - 650
-        req = cash_total - money
-        medium_array = np.array(cash.medium)
-        mask = (medium_array >= req)
-        final = np.flatnonzero(mask)[0]
-        save_embed = discord.Embed(color=0xffd04f, title="Result [`/saveup`]", description=f"To get {money} by round {round}, start saving up from **round {final}**.\n\nExpression:\n> *total = money obtained until round*\n> *required = total - money needed*\n> *round = minimum round to the required amount*")
-        save_embed.set_thumbnail(url="https://static.wikia.nocookie.net/b__/images/2/23/Money_icon.png/revision/latest?cb=20210727151424&path-prefix=bloons")
-        save_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
-        save_embed.set_footer(text="ⓘ does not factor in external farming or any money you already have")
-        await interaction.response.send_message(embed=save_embed)
+    if money == 0:
+        error_embed = discord.Embed(color=0x5865f2, title="Encountered Problem [`/saveup`]", description="Money parameter cannot be 0.")
+        error_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+        await interaction.response.send_message(embed=error_embed)                
+    elif difficulty == "easy/medium":
+        if money > cash.medium[round - 1]:
+            error_embed = discord.Embed(color=0x5865f2, title="Encountered Problem [`/saveup`]", description="Money parameter cannot exceed maximum cash earned by round.")
+            error_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+            await interaction.response.send_message(embed=error_embed)
+        else:
+            cash_total = cash.medium[round - 1]
+            req = cash_total - money
+            medium_array = np.array(cash.medium)
+            mask = (medium_array >= req)
+            final = np.flatnonzero(mask)[0]
+            save_embed = discord.Embed(color=0xffd04f, title="Result [`/saveup`]", description=f"To get {money} by round {round}, start saving up from **round {final}**.\n\nExpression:\n> *total = money obtained until round*\n> *required = total - money needed*\n> *round = minimum round to the required amount*")
+            save_embed.set_thumbnail(url="https://static.wikia.nocookie.net/b__/images/2/23/Money_icon.png/revision/latest?cb=20210727151424&path-prefix=bloons")
+            save_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+            save_embed.set_footer(text="ⓘ does not factor in external farming or any money you already have")
+            await interaction.response.send_message(embed=save_embed)
+    elif difficulty == "hard":
+        if money > cash.hard[round - 1]:
+            error_embed = discord.Embed(color=0x5865f2, title="Encountered Problem [`/saveup`]", description="Money parameter cannot exceed maximum cash earned by round.")
+            error_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+            await interaction.response.send_message(embed=error_embed)
+        else:
+            cash_total = cash.hard[round - 1]
+            req = cash_total - money
+            hard_array = np.array(cash.hard)
+            mask = (hard_array >= req)
+            final = np.flatnonzero(mask)[0]
+            save_embed = discord.Embed(color=0xffd04f, title="Result [`/saveup`]", description=f"To get {money} by round {round}, start saving up from **round {final}**.\n\nExpression:\n> *total = money obtained until round*\n> *required = total - money needed*\n> *round = minimum round to the required amount*")
+            save_embed.set_thumbnail(url="https://static.wikia.nocookie.net/b__/images/2/23/Money_icon.png/revision/latest?cb=20210727151424&path-prefix=bloons")
+            save_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+            save_embed.set_footer(text="ⓘ does not factor in external farming or any money you already have")
+            await interaction.response.send_message(embed=save_embed)
+    elif difficulty == "impoppable/chimps":
+        if money > cash.impoppable[round - 1]:
+            error_embed = discord.Embed(color=0x5865f2, title="Encountered Problem [`/saveup`]", description="Money parameter cannot exceed maximum cash earned by round.")
+            error_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+            await interaction.response.send_message(embed=error_embed)
+        else:
+            cash_total = cash.impoppable[round - 1]
+            req = cash_total - money
+            impoppable_array = np.array(cash.impoppable)
+            mask = (impoppable_array >= req)
+            final = np.flatnonzero(mask)[0]
+            save_embed = discord.Embed(color=0xffd04f, title="Result [`/saveup`]", description=f"To get {money} by round {round}, start saving up from **round {final}**.\n\nExpression:\n> *total = money obtained until round*\n> *required = total - money needed*\n> *round = minimum round to the required amount*")
+            save_embed.set_thumbnail(url="https://static.wikia.nocookie.net/b__/images/2/23/Money_icon.png/revision/latest?cb=20210727151424&path-prefix=bloons")
+            save_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+            save_embed.set_footer(text="ⓘ does not factor in external farming or any money you already have")
+            await interaction.response.send_message(embed=save_embed)
 
 @bot.tree.command(description="Check base and buffed stats of various components of the VTSG.")
 @app_commands.describe(attack="Attack to display information about.")
@@ -310,5 +357,38 @@ async def vtsg(interaction: discord.Interaction, attack: Literal["main beam", "s
         vtsg_embed.add_field(name="Total Buffed DPS", value="> 12 * 86/0.08954 = 11525 ~ **11.5k**", inline=False)
         vtsg_embed.set_footer(text="ⓘ single target only; data from LordVex75")
         await interaction.response.send_message(embed=vtsg_embed)
+
+@bot.tree.command(description="Check the stats of a player using their ID.")
+@app_commands.describe(id = "The player ID.")
+async def player(interaction: discord.Interaction, id: str):
+    await interaction.response.defer()
+    URL = "https://data.ninjakiwi.com"
+    response = requests.get(f"{URL}/btd6/users/{id}")
+    jsonr = response.json()
+    if jsonr["error"] == "Invalid user ID":
+        error_embed = discord.Embed(color=0x5865f2, title="Encountered Problem [`/player`]", description="ID parameter was invalid. Please reuse the command and set the `tutorial` parameter to True to get a tutorial on fetching IDs.")
+        error_embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+        await interaction.followup.send(embed=error_embed)
+    else:
+        uname = jsonr["body"]["displayName"]
+        rank = str(jsonr["body"]["rank"])
+        veteran = str(jsonr["body"]["veteranRank"])
+        most_experienced = jsonr["body"]["mostExperiencedMonkey"]
+        most_experienced = nkapi.emotify(most_experienced)
+        highest_round = str(jsonr["body"]["highestRound"])
+        achievements = str(jsonr["body"]["achievements"])
+        followers = str(jsonr["body"]["followers"])
+        avatar = jsonr["body"]["avatarURL"]
+        f = BytesIO(urlopen(avatar).read())
+        dominant = ColorThief(f).get_color(quality=1) 
+        player_embed = discord.Embed(color=discord.Color.from_rgb(r=dominant[0], g=dominant[1], b=dominant[2]), title=f"{uname} [`/player`]")
+        player_embed.set_thumbnail(url=avatar)
+        player_embed.add_field(name="Rank", value=f"<:rank:1072789620883984414> {rank}", inline=False)
+        player_embed.add_field(name="Veteran Rank", value=f"<:veteran:1072789996047704144> {veteran}", inline=False)
+        player_embed.add_field(name="Most Experienced Monkey", value=most_experienced, inline=False)
+        player_embed.add_field(name="Highest Round", value=f"<:red:1072864121088909322> {highest_round}", inline=False)
+        player_embed.add_field(name="Followers", value=f"<:dartface:1072900168275468318> {followers}", inline=False)
+        player_embed.add_field(name="Achievements", value=f"<:achievements:1073259163653787728> {achievements}", inline=False)
+        await interaction.followup.send(embed=player_embed)
 
 bot.run(token)
