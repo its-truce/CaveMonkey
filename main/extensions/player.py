@@ -124,6 +124,7 @@ class PlayerDropdown(discord.ui.Select):
             self.options[2].default = True
             await interaction.edit_original_response(embed=medals_embed, view=self.view)
 
+            
 class PlayerView(discord.ui.View):
     def __init__(self, color, id):
         super().__init__()
