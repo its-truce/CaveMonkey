@@ -14,3 +14,4 @@ I would prefer it if you don't run an instance of my bot. It can be invited usin
   # Installing dependencies:
   pip install -U -r requirements.txt
   ```
+* Enter your bot's token in the [`bot.py`](https://github.com/its-truce/CaveMonkey/blob/main/main/bot.py) file. The variable is on line 8.
