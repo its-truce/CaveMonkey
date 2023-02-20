@@ -6,6 +6,11 @@ I would prefer it if you don't run an instance of my bot. It can be invited usin
 * Make sure you have the latest stable version of [`Python`](https://www.python.org/) installed.
 * Make a venv. In your root folder, run this command:
   ```py
+  # Making a venv:
   python3 -m venv venv
   ```
-pip install -U -r requirements.txt
+* Installing the requirements. This is simply:
+  ```py
+  # Installing dependencies:
+  pip install -U -r requirements.txt
+  ```
