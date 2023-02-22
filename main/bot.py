@@ -3,9 +3,9 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from datetime import datetime
+from config import TOKEN
 
 # Setup
-token = "YOUR TOKEN HERE"
 initial_extensions = ("extensions.vtsg", "extensions.pop", "extensions.income", "extensions.player", "extensions.help")
 
 class Bot(commands.Bot):
@@ -60,4 +60,4 @@ async def reload(ctx, extarg: str = None):
             await ctx.send(embed=embed)
 
 # Running
-bot.run(token)
+bot.run(TOKEN)
