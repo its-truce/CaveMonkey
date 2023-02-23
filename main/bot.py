@@ -3,10 +3,10 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from datetime import datetime
-from config import TOKEN
+import config
 
 # Setup
-initial_extensions = ("extensions.vtsg", "extensions.pop", "extensions.income", "extensions.player", "extensions.help")
+initial_extensions = ("extensions.vtsg", "extensions.pop", "extensions.income", "extensions.player", "extensions.help", "extensions.knowledge")
 
 class Bot(commands.Bot):
     def __init__(self):
@@ -15,7 +15,7 @@ class Bot(commands.Bot):
         intents.members = True
         intents.presences = True
         activity = discord.Game(name="Bloons TD 6")
-        super().__init__(command_prefix=commands.when_mentioned_or("-"), intents=intents, activity=activity, status=discord.Status.idle, owner_id = 626333424965386240)
+        super().__init__(command_prefix=commands.when_mentioned_or(config.prefix), intents=intents, activity=activity, status=discord.Status.idle, owner_id = config.owner_id)
 
     async def setup_hook(self):
         for ext in initial_extensions:
@@ -23,6 +23,8 @@ class Bot(commands.Bot):
                 await self.load_extension(ext)
             except Exception as e:
                 print(f"Failed to load extension {ext}.\nException:\n{e}")
+
+# Initializing the bot
 bot = Bot()
 bot.launch_time = datetime.utcnow()
 
@@ -60,4 +62,4 @@ async def reload(ctx, extarg: str = None):
             await ctx.send(embed=embed)
 
 # Running
-bot.run(TOKEN)
+bot.run(config.token)
