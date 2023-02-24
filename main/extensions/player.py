@@ -270,7 +270,7 @@ class PlayerInfo(commands.Cog):
         tutorial_embed.add_field(name="Step 2", value="Scroll all the way down and open the challenge browser.", inline=False)
         tutorial_embed.add_field(name="Step 3", value="Click on the yellow CREATE button.", inline=False)
         tutorial_embed.add_field(name="Step 4", value="Modify the challenge as you wish and beat it. After this, submit the challenge.", inline=False)
-        tutorial_embed.add_field(name="Step 5", value="You'll get a code that looks something like ZMDSRCO. Copy it and enter it into the `/fetch player` command to get your player ID.", inline=False)
+        tutorial_embed.add_field(name="Step 5", value="You'll get a code that looks something like ZMDSRCO. Copy it and enter it into the `/player fetch` command to get your player ID.", inline=False)
         await interaction.response.send_message(embed=tutorial_embed)
         
     @player_group.command(description="Saves your player ID so you can view your profile by using /player info.")
